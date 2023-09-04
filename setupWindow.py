@@ -9,6 +9,12 @@ import ifaddr
 # packet_size from a list of available packet sizes (default 512)
 # tans_rate from a list of available transmission rates (default 30)
 
+targetIP_var, transRate_var, packetSize_var, universe_var = None, None, None, None
+
+def setupWindow():
+    setupWindowWindow()
+    return (targetIP_var.get(), transRate_var.get(), packetSize_var.get(), universe_var.get())
+
 def getAdaptorAddresses():
     adaptors = ifaddr.get_adapters()
     addresses = []
@@ -19,9 +25,12 @@ def getAdaptorAddresses():
                 addresses.append(ip.ip)
     return addresses
 
-def setupWindow():
+
+def setupWindowWindow():
     root = tk.Tk()
     root.title("OliQ Setup")
+
+    global targetIP_var, transRate_var, packetSize_var, universe_var
 
     targetIP_var = tk.StringVar(value=str(getAdaptorAddresses()[0]))
     transRate_var = tk.IntVar(value=30)
@@ -54,10 +63,7 @@ def setupWindow():
 
 
     # Submit button, returns data to main.py
-    submit_button=tk.Button(root, text="Submit", command=lambda: [root.destroy(), submit(targetIP_var.get(), transRate_var.get(), packetSize_var.get(), universe_var.get())])
+    submit_button=tk.Button(root, text="Submit", command=lambda: [root.destroy()])
     submit_button.grid(row=5, column=1, sticky="nsew")
 
     root.mainloop()
-
-def submit(ip, transRate, packetSize, universe):
-    return ip, transRate, packetSize, universe
