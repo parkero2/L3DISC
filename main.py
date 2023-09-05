@@ -14,7 +14,7 @@ import sqlite3
 
 from PIL import Image, ImageTk
 
-import windows.setupWindow as setupWindow
+import TKWindows.setupWindow as setupWindow
 
 artnetConnection = None
 rigsDB = None
@@ -27,7 +27,7 @@ try:
 except FileNotFoundError:
     print("info.txt not found, please download the latest version of OliQ from https://github.com/parkero2/L3DISC/releases.")
 
-def getRigs():
+def getRigs() -> list:
     global rigsDB
     rows = rigsDB.execute("SELECT name FROM sqlite_schema WHERE type='table';") # Get all the tables in the database
     rigs = []
@@ -55,9 +55,46 @@ def main():
     root.attributes('-fullscreen', True)
     root.bind("<Escape>", lambda e: root.destroy())
 
+    # Show selector button, always in the top left corner
+    showSelectorButton = tk.Button(root, text="Show Selector", 
+                                   command=lambda: showSelector())
+    showSelectorButton.grid(row=0, column=0, sticky="nw")
+
+
     # Main window
     root.mainloop()
 
+def showSelector():
+    # window with a dropdown menu allowing the user to select a rig
+    rigSelector = tk.Toplevel(root)
+    rigSelector.title("Select Rig")
+    rigSelector.geometry("300x200")
+    rigSelector.resizable(False, False)
+
+    # Rig selector
+    rigSelectorLabel = tk.Label(rigSelector, text="Select a rig:")
+    rigSelectorLabel.grid(row=0, column=0, sticky="nw")
+
+    rigSelectorDropdown = ttk.Combobox(rigSelector, values=getRigs())
+    rigSelectorDropdown.grid(row=1, column=0, sticky="nw")
+
+    rigSelectorButton = tk.Button(rigSelector, text="Select", 
+                                  command=lambda: setRig(
+                                      rigSelectorDropdown.get(), 
+                                      rigSelector.destroy()))
+    rigSelectorButton.grid(row=2, column=0, sticky="nw")
+
+    # New rig button, this passes None to setRig, which will create a new rig
+    newRigButton = tk.Button(rigSelector, text="New Rig", 
+                             command=lambda: setRig(None, 
+                                                    rigSelector.destroy()))
+    newRigButton.grid(row=3, column=0, sticky="nw")
+
+    rigSelector.mainloop()
+
+def setRig(rig: str = None, window: tk.Toplevel = None):
+    global selected_rig
+    selected_rig = rig
 
 if __name__ == '__main__':
     main()
