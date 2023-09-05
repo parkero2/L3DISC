@@ -11,7 +11,7 @@ import ifaddr
 
 targetIP_var, transRate_var, packetSize_var, universe_var = None, None, None, None
 
-def setupWindow():
+def setupWindow() -> (str, int, int, int):
     setupWindowWindow()
     return (targetIP_var.get(), transRate_var.get(), packetSize_var.get(), universe_var.get())
 

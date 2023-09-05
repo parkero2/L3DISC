@@ -14,7 +14,7 @@ import sqlite3
 
 from PIL import Image, ImageTk
 
-import setupWindow
+import windows.setupWindow as setupWindow
 
 artnetConnection = None
 rigsDB = None
@@ -34,7 +34,6 @@ def getRigs():
     for row in rows:
         rigs.append(row) # Make a list of each rig in the database
     return rigs
-
 
 def main():
     atnetSetup = setupWindow.setupWindow()
