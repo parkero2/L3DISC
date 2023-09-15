@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Head adder</title>
+</head>
+<body>
+    <form>
+        <h3>Select head type</h3>
+        <p>Choose an existing head type to prefill channels etc.</p>
+        <select onclick="headChanged()">
+            <option id="defaultDisable" value="0">Select head type</option>
+            <option value="1">Fresnel</option>
+            <option value="2">Euris</option>
+            <option value="3">Generic PAR</option>
+        </select>
+        <h3>Head Type</h3>
+        <p>Name the head you're creating</p>
+        <input type="text" name="headtype" id="headtype">
+        <h3>Head name</h3>
+        <p>Give the head a name</p>
+        <input type="text" name="headname" id="headname">
+        <h3>Channels</h3>
+        <p>Enter the number of channels your fixture has</p>
+        <input type="number" name="channels" id="channels">
+        <h3>Relative channels</h3>
+        <p>Fill in (where applicable) the channel number of each attribute
+            The first channel (1) is normally intensity
+        </p>
+        <h4>Intensity</h4>
+        <input type="number" name="intensity" id="intensity" placeholder="1">
+        <h4>Red</h4>
+        <input type="number" name="red" id="red" placeholder="2">
+    </form>
+</body>
+<script>
+    function headChanged() {
+        document.getElementById("headtype").disabled = true;
+        document.getElementById("defaultDisable").disabled = true;
+    }
+</script>
+</html>
