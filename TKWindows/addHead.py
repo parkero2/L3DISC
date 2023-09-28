@@ -14,13 +14,40 @@ def changedValue(dropDownMenu: ttk.Combobox):
         headNameEntry.configure(state="disabled")
 
 
-def submitHead(rigsDB, selected_rig, addHeadWindow, headTypeDropdown,
-               headNameEntry, totalChannelsEntry, intensityChannelEntry,
-               redChannelEntry, greenChannelEntry, blueChannelEntry,
-               amberChannelEntry, whiteChannelEntry, panChannelEntry,
-               tiltChannelEntry, shutterChannelEntry):
-    pass
-
+def submitHead(rigsDB: mainwindow.sqlite3.Connection, selected_rig: str, 
+               addHeadWindow, headTypeEntry: tk.Entry, 
+               headTypeDropdown: ttk.Combobox, patchEntry: tk.Entry, 
+               headNameEntry: tk.Entry, totalChannelsEntry: tk.Entry, 
+               intensityChannelEntry:tk.Entry,redChannelEntry: tk.Entry, 
+               greenChannelEntry: tk.Entry, blueChannelEntry: tk.Entry, 
+               amberChannelEntry: tk.Entry, whiteChannelEntry: tk.Entry, 
+               panChannelEntry: tk.Entry,tiltChannelEntry: tk.Entry, 
+               shutterChannelEntry: tk.Entry):
+    # Example query
+    # INSERT INTO example (Name, HeadType, Patch, Channels, Intensity, Red, Green, Blue, Amber, White, Pan, Tilt, Shutter) VALUES ("FOH1", "Fresnel", 3, 1, 1)
+    headType = None
+    print(headTypeDropdown.get())
+    if headTypeDropdown.get() == "NEW HEAD TYPE":
+        headType = headTypeDropdown.get()
+    else:
+        headType = headTypeEntry.get()
+    
+    query = f'''INSERT INTO {selected_rig} (Name, HeadType, Patch, Channels, 
+    Intensity, Red, Green, Blue, Amber, White, Pan, Tilt, Shutter) VALUES (
+        {"Unamed" if (headNameEntry.get() == "") else headNameEntry.get()}, {headType}, {int(patchEntry.get())}, 
+        {int(totalChannelsEntry.get())}, 
+        {int(intensityChannelEntry.get()) if (not intensityChannelEntry.get() == "") else None}, 
+        {int(redChannelEntry.get()) if (not redChannelEntry.get() == "") else None},
+        {int(greenChannelEntry.get()) if (not greenChannelEntry.get() == "") else None},
+        {int(blueChannelEntry.get()) if (not blueChannelEntry.get() == "") else None},
+        {int(amberChannelEntry.get()) if (not amberChannelEntry.get() == "") else None},
+        {int(whiteChannelEntry.get()) if (not whiteChannelEntry.get() == "") else None},
+        {int(panChannelEntry.get()) if (not panChannelEntry.get() == "") else None},
+        {int(tiltChannelEntry.get()) if (not tiltChannelEntry.get() == "") else None},
+        {int(shutterChannelEntry.get()) if (not shutterChannelEntry.get() == "") else None})'''.strip("\n")
+    print(query.strip('''
+'''))
+    rigsDB.execute(query)
 
 def addHead(root, rigsDB, selected_rig):
     global headNameEntry, headTypeDropdown
@@ -47,6 +74,14 @@ def addHead(root, rigsDB, selected_rig):
     headTypeDropdown.bind("<<ComboboxSelected>>",
                           changedValue(headTypeDropdown))
     headTypeDropdown.grid(row=1, column=0, sticky="nw")
+
+    # Head type label
+    headTypeEntryLabel = tk.Label(addHeadWindow, text="Head Type Label (if not selected):")
+    headTypeEntryLabel.grid(row=0, column=3, sticky="nw")
+
+    # HeadType string input
+    headTypeEntry = tk.Entry(addHeadWindow)
+    headTypeEntry.grid(row=1, column=3, sticky="nw")
 
     # Head name
     headNameLabel = tk.Label(addHeadWindow, text="Head Name:")
@@ -125,14 +160,21 @@ def addHead(root, rigsDB, selected_rig):
     shutterChannelEntry = tk.Entry(addHeadWindow)
     shutterChannelEntry.grid(row=23, column=0, sticky="nw")
 
+    # Patch input
+    patchLabel = tk.Label(addHeadWindow, text="Patch:")
+    patchLabel.grid(row=24, column=0, sticky="nw")
+
+    patchEntry = tk.Entry(addHeadWindow)
+    patchEntry.grid(row=25, column=0, sticky="nw")
+
     # Submit button
     submitButton = tk.Button(addHeadWindow, text="Submit", command=lambda:
-                             submitHead(rigsDB, selected_rig, addHeadWindow, 
-                                        headTypeDropdown, headNameEntry, 
+                             submitHead(rigsDB, selected_rig, addHeadWindow, headTypeEntry,
+                                        headTypeDropdown, patchEntry, headNameEntry, 
                                         totalChannelsEntry, 
                                         intensityChannelEntry, redChannelEntry, 
                                         greenChannelEntry, blueChannelEntry, 
                                         amberChannelEntry, whiteChannelEntry, 
                                         panChannelEntry, tiltChannelEntry, 
                                         shutterChannelEntry))
-    submitButton.grid(row=24, column=0, sticky="nw")
+    submitButton.grid(row=26, column=0, sticky="nw")

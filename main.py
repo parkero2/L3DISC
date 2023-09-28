@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter import font
+from tkinter.colorchooser import askcolor
 
 import os
 import sys
@@ -22,9 +23,11 @@ rigsDB = None
 selected_rig = None
 root = None
 headsList = None
+addHeadButton, deleteHeadButton = None, None
+color = None
 
 try:
-    with open(os.path.join(os.getcwd(), "info.txt"), 'r') as f:
+    with open(os.path.join(os.getcwd(), "src", "info.txt"), 'r') as f:
         info = f.read().splitlines()
 except FileNotFoundError:
     print('''info.txt not found, please download the latest version of OliQ from 
@@ -39,60 +42,10 @@ def getRigs() -> list:
         rigs.append(row) # Make a list of each rig in the database
     return rigs
 
-def main():
-    atnetSetup = setupWindow.setupWindow()
-    artnetConnection = StupidArtnet(atnetSetup[0], atnetSetup[3], atnetSetup[2]
-                                    , atnetSetup[1])
-    artnetConnection.start()
-
-    #Initialal setup
-    if (not os.path.exists(os.path.join(os.getcwd(), "heads"))):
-        os.mkdir(os.path.join(os.getcwd(), "heads"))
-    
-    global rigsDB
-    rigsDB = sqlite3.connect(os.path.join(os.getcwd(), "rigs.db"))
-    rigs = getRigs()
-
-    global root, headsList
-    root = tk.Tk()
-    root.title(f"OliQ V" + str(info[0].split("=")[1]))
-    # mazimised window
-    root.state("zoomed")
-    root.bind("<Escape>", lambda e: root.destroy())
-
-    # Show selector button, always in the top left corner
-    showSelectorButton = tk.Button(root, text="Show Selector", 
-                                   command=lambda: showSelector())
-    showSelectorButton.grid(row=0, column=0, sticky="nw")
-
-    # Create a resizable section on the left
-    headsFrame = tk.Frame(root, width=200, height=1000)
-    headsFrame.grid(row=1, column=0, sticky="nw")
-    headsFrame.grid_propagate(False)
-
-    #Add head button
-    addHeadButton = tk.Button(headsFrame, text="Add Head",
-                                command=lambda: addHead.addHead(root, rigsDB, selected_rig))
-    addHeadButton.grid(row=0, column=0, sticky="nw")
-
-    # Delete selected head(s) button
-    deleteHeadButton = tk.Button(headsFrame, text="Delete Head(s)",
-                                command=lambda: deleteHead(headsList.curselection()))
-    deleteHeadButton.grid(row=0, column=1, sticky="nw")
-
-    # Create a selection list for the heads
-    headsList = tk.Listbox(headsFrame, width=200, height=1000)
-    headsList.grid(row=1, column=0, sticky="nw")
-    headsList.grid_propagate(False)
-
-    # Main window
-    root.mainloop()
-
 def showSelector():
     # window with a dropdown menu allowing the user to select a rig
     rigSelector = tk.Toplevel(root)
     rigSelector.title("Select Rig")
-    rigSelector.geometry("300x200")
     rigSelector.resizable(False, False)
 
     # Rig selector
@@ -115,6 +68,10 @@ def showSelector():
     newRigButton.grid(row=3, column=0, sticky="nw")
 
     rigSelector.mainloop()
+
+def selectColor():
+    global color
+    color = askcolor(title="Select Color")
 
 def deleteHead(heads: tuple):
     global selected_rig
@@ -139,10 +96,124 @@ def showRig(lbox: tk.Listbox):
         lbox.insert(tk.END, f"{row[0]}: {row[1]}")
 
 def setRig(rig: str = None, window: tk.Toplevel = None):
-    global selected_rig, headsList
+    global selected_rig, headsList, deleteHeadButton, addHeadButton
     selected_rig = rig
+    deleteHeadButton["state"] = "normal"
+    addHeadButton["state"] = "normal"
     showRig(headsList)
 
+def create_attrtibute_frames(root: tk.Tk):
+    # a 4x4 grid for attributes. Each frame has a black outline
+    # Intensity | Color
+    # Position  | Beam
+
+    #Intensity section
+    intensityFrame = tk.Frame(root, width=200, height=100, 
+                              highlightbackground="black", highlightthickness=1)
+    intensityFrame.grid(row=1, column=2, sticky="nw")
+    intensityFrame.grid_propagate(False)
+
+    # Intensity label
+    intensityLabel = tk.Label(intensityFrame, text="Intensity:")
+    intensityLabel.grid(row=0, column=0, sticky="nw")
+
+    # Intensity slider
+    intensitySlider = tk.Scale(intensityFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+    intensitySlider.grid(row=0, column=0, sticky="nw")
+
+
+    # Color section
+    colorFrame = tk.Frame(root, width=200, height=500, 
+                              highlightbackground="black", highlightthickness=1)
+    colorFrame.grid(row=1, column=3, sticky="nw")
+    colorFrame.grid_propagate(False)
+
+    # Color picker
+    colorPicker = tk.Button(colorFrame, text="Color Picker", command=lambda: 
+                            selectColor())
+    colorPicker.grid(row=0, column=0, sticky="nw")
+
+    # Amber and white sliders
+    amberLabel = tk.Label(colorFrame, text="Amber:")
+    amberLabel.grid(row=1, column=0, sticky="nw")
+    amberSlider = tk.Scale(colorFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+    amberSlider.grid(row=2, column=0, sticky="nw")
+    whiteLabel = tk.Label(colorFrame, text="White:")
+    whiteLabel.grid(row=3, column=0, sticky="nw")
+    whiteSlider = tk.Scale(colorFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+    whiteSlider.grid(row=4, column=0, sticky="nw")
+
+
+    # Position section
+    positionFrame = tk.Frame(root, width=200, height=500, 
+                              highlightbackground="black", highlightthickness=1)
+    positionFrame.grid(row=2, column=2, sticky="nw")
+    positionFrame.grid_propagate(False)
+
+    # Beam section
+    beamFrame = tk.Frame(root, width=200, height=1000)
+    beamFrame.grid(row=2, column=3, sticky="nw")
+    beamFrame.grid_propagate(False)
+
+def main():
+    atnetSetup = setupWindow.setupWindow()
+    artnetConnection = StupidArtnet(atnetSetup[0], atnetSetup[3], atnetSetup[2]
+                                    , atnetSetup[1])
+    try:
+        artnetConnection.start()
+    except:
+        #error message if not establishable
+        
+        pass 
+
+    #Initialal setup
+    if (not os.path.exists(os.path.join(os.getcwd(), "heads"))):
+        os.mkdir(os.path.join(os.getcwd(), "heads"))
+    
+    global rigsDB
+    rigsDB = sqlite3.connect(os.path.join(os.getcwd(), "src", "rigs.db"))
+    rigs = getRigs()
+
+    global root, headsList, addHeadButton, deleteHeadButton
+    root = tk.Tk()
+    root.title(f"OliQ V" + str(info[0].split("=")[1]))
+    # mazimised window
+    root.state("zoomed")
+    root.bind("<Escape>", lambda e: root.destroy())
+
+    # Show selector button, always in the top left corner
+    showSelectorButton = tk.Button(root, text="Show Selector", 
+                                   command=lambda: showSelector())
+    showSelectorButton.grid(row=0, column=0, sticky="nw")
+
+    # Create a resizable section on the left
+    headsFrame = tk.Frame(root, width=200, height=500)
+    headsFrame.grid(row=1, column=0, sticky="nw")
+    headsFrame.grid_propagate(False)
+
+    #Add head button
+    addHeadButton = tk.Button(headsFrame, text="Add Head",
+                                command=lambda: addHead.addHead(root, rigsDB, 
+                                                                selected_rig))
+    addHeadButton.grid(row=0, column=0, sticky="nw")
+
+    # Delete selected head(s) button
+    deleteHeadButton = tk.Button(headsFrame, text="Delete Head(s)",
+                                command=lambda: deleteHead(headsList.curselection()))
+    deleteHeadButton.grid(row=0, column=1, sticky="nw")
+
+    deleteHeadButton["state"] = "disabled" 
+    addHeadButton["state"] = "disabled"
+
+    # Create a selection list for the heads
+    headsList = tk.Listbox(headsFrame, width=200, height=1000)
+    headsList.grid(row=1, column=0, sticky="nw")
+    headsList.grid_propagate(False)
+
+    create_attrtibute_frames(root)
+
+    # Main window
+    root.mainloop()
 
 if __name__ == '__main__':
     main()
