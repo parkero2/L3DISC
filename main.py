@@ -1,22 +1,34 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
-from tkinter import filedialog
-from tkinter import font
-from tkinter.colorchooser import askcolor
+try:
+    import tkinter as tk
+    from tkinter import ttk
+    from tkinter import messagebox
+    from tkinter import filedialog
+    from tkinter import font
+    from tkinter.colorchooser import askcolor
 
-import os
-import sys
-import time
-import threading
-import asyncio
-from stupidArtnet import StupidArtnet
-import sqlite3
+    import os
+    import sys
+    import time
+    import threading
+    import asyncio
+    from stupidArtnet import StupidArtnet
+    import sqlite3
 
-from PIL import Image, ImageTk
+    from PIL import Image, ImageTk
 
-import TKWindows.setupWindow as setupWindow
-import TKWindows.addHead as addHead
+    import TKWindows.setupWindow as setupWindow
+    import TKWindows.addHead as addHead
+except ImportError:
+    if(input('''One or more required modules are not installed, would you like 
+             to install them? (y/n): '''.replace('\n', '')
+                                        .replace('    ', ''))
+                                        .lower() == "y"):
+        os.system("pip install -r requirements.txt")
+        print("Please restart OliQ.")
+        exit(0)
+    else:
+        print("Please install the required modules before running OliQ.")
+        exit(1)
 
 artnetConnection = None
 rigsDB = None
