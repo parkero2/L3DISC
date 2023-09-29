@@ -18,6 +18,8 @@ try:
 
     import TKWindows.setupWindow as setupWindow
     import TKWindows.addHead as addHead
+    from src.frames import *
+
 except ImportError:
     if(input('''One or more required modules are not installed, would you like 
              to install them? (y/n): '''.replace('\n', '')
@@ -37,6 +39,7 @@ root = None
 headsList = None
 addHeadButton, deleteHeadButton = None, None
 color = None
+playbackButtons, playbackFaders = [], []
 
 try:
     with open(os.path.join(os.getcwd(), "src", "info.txt"), 'r') as f:
@@ -82,7 +85,7 @@ def showSelector():
     rigSelector.mainloop()
 
 def selectColor():
-    global color
+    global color 
     color = askcolor(title="Select Color")
 
 def deleteHead(heads: tuple):
@@ -112,60 +115,8 @@ def setRig(rig: str = None, window: tk.Toplevel = None):
     selected_rig = rig
     deleteHeadButton["state"] = "normal"
     addHeadButton["state"] = "normal"
-    showRig(headsList)
+    showRig(headsList)  
 
-def create_attrtibute_frames(root: tk.Tk):
-    # a 4x4 grid for attributes. Each frame has a black outline
-    # Intensity | Color
-    # Position  | Beam
-
-    #Intensity section
-    intensityFrame = tk.Frame(root, width=200, height=100, 
-                              highlightbackground="black", highlightthickness=1)
-    intensityFrame.grid(row=1, column=2, sticky="nw")
-    intensityFrame.grid_propagate(False)
-
-    # Intensity label
-    intensityLabel = tk.Label(intensityFrame, text="Intensity:")
-    intensityLabel.grid(row=0, column=0, sticky="nw")
-
-    # Intensity slider
-    intensitySlider = tk.Scale(intensityFrame, from_=0, to=255, orient=tk.HORIZONTAL)
-    intensitySlider.grid(row=0, column=0, sticky="nw")
-
-
-    # Color section
-    colorFrame = tk.Frame(root, width=200, height=500, 
-                              highlightbackground="black", highlightthickness=1)
-    colorFrame.grid(row=1, column=3, sticky="nw")
-    colorFrame.grid_propagate(False)
-
-    # Color picker
-    colorPicker = tk.Button(colorFrame, text="Color Picker", command=lambda: 
-                            selectColor())
-    colorPicker.grid(row=0, column=0, sticky="nw")
-
-    # Amber and white sliders
-    amberLabel = tk.Label(colorFrame, text="Amber:")
-    amberLabel.grid(row=1, column=0, sticky="nw")
-    amberSlider = tk.Scale(colorFrame, from_=0, to=255, orient=tk.HORIZONTAL)
-    amberSlider.grid(row=2, column=0, sticky="nw")
-    whiteLabel = tk.Label(colorFrame, text="White:")
-    whiteLabel.grid(row=3, column=0, sticky="nw")
-    whiteSlider = tk.Scale(colorFrame, from_=0, to=255, orient=tk.HORIZONTAL)
-    whiteSlider.grid(row=4, column=0, sticky="nw")
-
-
-    # Position section
-    positionFrame = tk.Frame(root, width=200, height=500, 
-                              highlightbackground="black", highlightthickness=1)
-    positionFrame.grid(row=2, column=2, sticky="nw")
-    positionFrame.grid_propagate(False)
-
-    # Beam section
-    beamFrame = tk.Frame(root, width=200, height=1000)
-    beamFrame.grid(row=2, column=3, sticky="nw")
-    beamFrame.grid_propagate(False)
 
 def main():
     atnetSetup = setupWindow.setupWindow()
@@ -175,8 +126,15 @@ def main():
         artnetConnection.start()
     except:
         #error message if not establishable
-        
-        pass 
+        errBox = tk.Tk()
+        errBox.title("Error")
+        errBox.resizable(False, False)
+        errLabel = tk.Label(errBox, text="Could not establish connection to "
+                            "ArtNet node. This does not affect app functionality.")
+        errLabel.grid(row=0, column=0, sticky="nw")
+        errButton = tk.Button(errBox, text="OK", command=lambda: errBox.destroy())
+        errButton.grid(row=1, column=0, sticky="nw")
+        errBox.mainloop()
 
     #Initialal setup
     if (not os.path.exists(os.path.join(os.getcwd(), "heads"))):
@@ -223,6 +181,7 @@ def main():
     headsList.grid_propagate(False)
 
     create_attrtibute_frames(root)
+    create_playbacks(root)
 
     # Main window
     root.mainloop()
