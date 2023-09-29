@@ -18,6 +18,7 @@ try:
 
     import TKWindows.setupWindow as setupWindow
     import TKWindows.addHead as addHead
+    import classes.lighting_fixture as lighting_fixture
 except ImportError:
     if(input('''One or more required modules are not installed, would you like 
              to install them? (y/n): '''.replace('\n', '')
@@ -34,9 +35,13 @@ artnetConnection = None
 rigsDB = None
 selected_rig = None
 root = None
-headsList = None
+headsInRig = []
+headsList = []
 addHeadButton, deleteHeadButton = None, None
 color = None
+heads = None
+amberSlider = None
+whiteSlider = None
 
 try:
     with open(os.path.join(os.getcwd(), "src", "info.txt"), 'r') as f:
@@ -81,9 +86,19 @@ def showSelector():
 
     rigSelector.mainloop()
 
-def selectColor():
-    global color
-    color = askcolor(title="Select Color")
+def selectColor(root: tk.Tk):
+    global color, headsInRig, amberSlider, whiteSlider, headsList
+    color = askcolor(title="Select Color")  
+    # Set the color for each head selected
+    print(headsInRig)
+    for head in headsList.curselection():
+        print(head)
+        headsInRig[head].set_red(color[0][0])
+        headsInRig[head].set_green(color[0][1])
+        headsInRig[head].set_blue(color[0][2])
+        headsInRig[head].set_amber(amberSlider.get())
+        headsInRig[head].set_white(whiteSlider.get())
+
 
 def deleteHead(heads: tuple):
     global selected_rig
@@ -101,10 +116,22 @@ def deleteHead(heads: tuple):
         showRig(headsList)
 
 def showRig(lbox: tk.Listbox):
-    global selected_rig
+    global selected_rig, heads, artnetConnection, headsInRig
     query = f"SELECT * FROM {selected_rig} ORDER BY HeadID ASC"
     rows = rigsDB.execute(query)
+    headsInRig = []
     for row in rows:
+        headsInRig.append(lighting_fixture.lighting_fixture(artnetConnection, 
+                                                            row[0], row[2], 
+                                                            row[3], row[4],
+                                                            0 if (row[5] == None) else row[5],
+                                                            0 if (row[6] == None) else row[6],
+                                                            0 if (row[7] == None) else row[7],
+                                                            0 if (row[8] == None) else row[8],
+                                                            0 if (row[9] == None) else row[9],
+                                                            0 if (row[10] == None) else row[10],
+                                                            0 if (row[11] == None) else row[11],
+                                                            0 if (row[12] == None) else row[12]))
         lbox.insert(tk.END, f"{row[0]}: {row[1]}")
 
 def setRig(rig: str = None, window: tk.Toplevel = None):
@@ -118,6 +145,8 @@ def create_attrtibute_frames(root: tk.Tk):
     # a 4x4 grid for attributes. Each frame has a black outline
     # Intensity | Color
     # Position  | Beam
+
+    global amberSlider, whiteSlider
 
     #Intensity section
     intensityFrame = tk.Frame(root, width=200, height=100, 
@@ -142,7 +171,7 @@ def create_attrtibute_frames(root: tk.Tk):
 
     # Color picker
     colorPicker = tk.Button(colorFrame, text="Color Picker", command=lambda: 
-                            selectColor())
+                            selectColor(root))
     colorPicker.grid(row=0, column=0, sticky="nw")
 
     # Amber and white sliders
@@ -167,7 +196,8 @@ def create_attrtibute_frames(root: tk.Tk):
     beamFrame.grid(row=2, column=3, sticky="nw")
     beamFrame.grid_propagate(False)
 
-def main():
+def main(): 
+    global artnetConnection
     atnetSetup = setupWindow.setupWindow()
     artnetConnection = StupidArtnet(atnetSetup[0], atnetSetup[3], atnetSetup[2]
                                     , atnetSetup[1])
