@@ -42,6 +42,10 @@ color = None
 heads = None
 amberSlider = None
 whiteSlider = None
+intensitySlider = None
+panSlider = None
+tiltSlider = None
+shutterSlider = None
 
 try:
     with open(os.path.join(os.getcwd(), "src", "info.txt"), 'r') as f:
@@ -86,19 +90,55 @@ def showSelector():
 
     rigSelector.mainloop()
 
-def selectColor(root: tk.Tk):
-    global color, headsInRig, amberSlider, whiteSlider, headsList
-    color = askcolor(title="Select Color")  
-    # Set the color for each head selected
-    print(headsInRig)
-    for head in headsList.curselection():
-        print(head)
-        headsInRig[head].set_red(color[0][0])
-        headsInRig[head].set_green(color[0][1])
-        headsInRig[head].set_blue(color[0][2])
-        headsInRig[head].set_amber(amberSlider.get())
-        headsInRig[head].set_white(whiteSlider.get())
+# ATTRIBUTE HANDLERS
 
+def change_color(root: tk.Tk):
+    try:
+        global color, headsInRig, amberSlider, whiteSlider, headsList
+        color = askcolor(title="Select Color")  
+        # Set the color for each head selected
+        print(headsInRig)
+        for head in headsList.curselection():
+            print(head)
+            headsInRig[head].set_red(color[0][0])
+            headsInRig[head].set_green(color[0][1])
+            headsInRig[head].set_blue(color[0][2])
+            headsInRig[head].set_amber(amberSlider.get())
+            headsInRig[head].set_white(whiteSlider.get())
+    except:
+        messagebox.showwarning("Warning", "Color is not supported on one or more selected heads")
+
+def change_intensity():
+    try:
+        global headsInRig, intensitySlider, headsList
+        for head in headsList.curselection():
+            headsInRig[head].set_intensity(intensitySlider.get())
+    except:
+        messagebox.showwarning("Warning", "Intensity is not supported on one or more selected heads")
+
+def change_pan():
+    try:
+        global headsInRig, panSlider, headsList
+        for head in headsList.curselection():
+            headsInRig[head].set_pan(panSlider.get())
+    except:
+        messagebox.showwarning("Warning", "Pan is not supported on one or more selected heads")
+
+def change_tilt():
+    try:
+        global headsInRig, tiltSlider, headsList
+        for head in headsList.curselection():
+            headsInRig[head].set_tilt(tiltSlider.get())
+    except:
+        messagebox.showwarning("Warning", "Tilt is not supported on one or more selected heads")
+
+def change_shutter():
+    try:
+        global headsInRig, shutterSlider, headsList
+        for head in headsList.curselection():
+            headsInRig[head].set_shutter(shutterSlider.get())
+    except:
+        messagebox.showwarning("Warning", "Shutter is not supported on one or more selected heads")
 
 def deleteHead(heads: tuple):
     global selected_rig
@@ -146,10 +186,10 @@ def create_attrtibute_frames(root: tk.Tk):
     # Intensity | Color
     # Position  | Beam
 
-    global amberSlider, whiteSlider
+    global amberSlider, whiteSlider, intensitySlider, panSlider, tiltSlider, shutterSlider
 
     #Intensity section
-    intensityFrame = tk.Frame(root, width=200, height=100, 
+    intensityFrame = tk.Frame(root, width=200, height=200, 
                               highlightbackground="black", highlightthickness=1)
     intensityFrame.grid(row=1, column=2, sticky="nw")
     intensityFrame.grid_propagate(False)
@@ -160,18 +200,19 @@ def create_attrtibute_frames(root: tk.Tk):
 
     # Intensity slider
     intensitySlider = tk.Scale(intensityFrame, from_=0, to=255, orient=tk.HORIZONTAL)
-    intensitySlider.grid(row=0, column=0, sticky="nw")
+    intensitySlider.grid(row=1, column=0, sticky="nw")
+    intensitySlider.bind("<ButtonRelease-1>", lambda e: change_intensity())
 
 
     # Color section
-    colorFrame = tk.Frame(root, width=200, height=500, 
+    colorFrame = tk.Frame(root, width=200, height=200, 
                               highlightbackground="black", highlightthickness=1)
     colorFrame.grid(row=1, column=3, sticky="nw")
     colorFrame.grid_propagate(False)
 
     # Color picker
     colorPicker = tk.Button(colorFrame, text="Color Picker", command=lambda: 
-                            selectColor(root))
+                            change_color(root))
     colorPicker.grid(row=0, column=0, sticky="nw")
 
     # Amber and white sliders
@@ -184,17 +225,44 @@ def create_attrtibute_frames(root: tk.Tk):
     whiteSlider = tk.Scale(colorFrame, from_=0, to=255, orient=tk.HORIZONTAL)
     whiteSlider.grid(row=4, column=0, sticky="nw")
 
+    #Slider event handlers
+    amberSlider.bind("<ButtonRelease-1>", lambda e: change_color(root))
+    whiteSlider.bind("<ButtonRelease-1>", lambda e: change_color(root))
 
     # Position section
-    positionFrame = tk.Frame(root, width=200, height=500, 
+    positionFrame = tk.Frame(root, width=200, height=200, 
                               highlightbackground="black", highlightthickness=1)
-    positionFrame.grid(row=2, column=2, sticky="nw")
+    positionFrame.grid(row=1, column=4, sticky="nw")
     positionFrame.grid_propagate(False)
 
+    # Pan and tilt sliders
+    panLabel = tk.Label(positionFrame, text="Pan:")
+    panLabel.grid(row=0, column=0, sticky="nw")
+    panSlider = tk.Scale(positionFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+    panSlider.grid(row=1, column=0, sticky="nw")
+    tiltLabel = tk.Label(positionFrame, text="Tilt:")
+    tiltLabel.grid(row=2, column=0, sticky="nw")
+    tiltSlider = tk.Scale(positionFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+    tiltSlider.grid(row=3, column=0, sticky="nw")
+
+    # Add event handlers
+    panSlider.bind("<ButtonRelease-1>", lambda e: change_pan())
+    tiltSlider.bind("<ButtonRelease-1>", lambda e: change_tilt())
+
     # Beam section
-    beamFrame = tk.Frame(root, width=200, height=1000)
-    beamFrame.grid(row=2, column=3, sticky="nw")
+    beamFrame = tk.Frame(root, width=200, height=200, 
+                         highlightbackground="black", highlightthickness="1")
+    beamFrame.grid(row=1, column=5, sticky="nw")
     beamFrame.grid_propagate(False)
+
+    # Shutter slider
+    shutterLabel = tk.Label(beamFrame, text="Shutter:")
+    shutterLabel.grid(row=0, column=0, sticky="nw")
+    shutterSlider = tk.Scale(beamFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+    shutterSlider.grid(row=1, column=0, sticky="nw")
+
+    # Add event handler
+    shutterSlider.bind("<ButtonRelease-1>", lambda e: change_shutter())
 
 def main(): 
     global artnetConnection
