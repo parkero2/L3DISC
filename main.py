@@ -102,7 +102,6 @@ def select_show():
 
 # ATTRIBUTE HANDLERS
 
-
 def change_color(root: tk.Tk):
     try:
         global color, headsInRig, amberSlider, whiteSlider, headsList
@@ -213,7 +212,7 @@ def setRig(rig: str = None, window: tk.Toplevel = None, newRig: str = False):
         if (rig in get_rigs()):
             messagebox.showerror("Error", "Rig already exists")
             return
-        query = f"""CREATE TABLE '{rig}' (
+        query = f"""CREATE TABLE '{rig.replace(" ", "")}' (
                         'HeadID'	INTEGER NOT NULL,
                         'HeadType'	TEXT NOT NULL,
                         'Channels'	INTEGER NOT NULL,
@@ -420,7 +419,7 @@ def main():
     headsList.grid_propagate(False)
 
     create_attrtibute_frames(root)
-    create_playback_frames(root)
+    # create_playback_frames(root)
 
     # Main window
     root.mainloop()
