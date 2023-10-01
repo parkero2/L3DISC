@@ -20,6 +20,7 @@ try:
     import TKWindows.addHead as addHead
     import classes.lighting_fixture as lighting_fixture
 except ImportError:
+    # Some packages are not installed or available
     if(input('''One or more required modules are not installed, would you like 
              to install them? (y/n): '''.replace('\n', '')
                                         .replace('    ', ''))
@@ -46,6 +47,8 @@ intensitySlider = None
 panSlider = None
 tiltSlider = None
 shutterSlider = None
+playbackSliders, bumpButtons = [], []
+recordButton = None
 
 try:
     with open(os.path.join(os.getcwd(), "src", "info.txt"), 'r') as f:
@@ -54,7 +57,7 @@ except FileNotFoundError:
     print('''info.txt not found, please download the latest version of OliQ from 
           https://github.com/parkero2/L3DISC/releases.''')
 
-def getRigs() -> list:
+def get_rigs() -> list:
     global rigsDB
      # Get all the tables in the database
     rows = rigsDB.execute("SELECT name FROM sqlite_schema WHERE type='table';")
@@ -63,7 +66,7 @@ def getRigs() -> list:
         rigs.append(row) # Make a list of each rig in the database
     return rigs
 
-def showSelector():
+def select_show():
     # window with a dropdown menu allowing the user to select a rig
     rigSelector = tk.Toplevel(root)
     rigSelector.title("Select Rig")
@@ -73,7 +76,7 @@ def showSelector():
     rigSelectorLabel = tk.Label(rigSelector, text="Select a rig:")
     rigSelectorLabel.grid(row=0, column=0, sticky="nw")
 
-    rigSelectorDropdown = ttk.Combobox(rigSelector, values=getRigs())
+    rigSelectorDropdown = ttk.Combobox(rigSelector, values=get_rigs())
     rigSelectorDropdown.grid(row=1, column=0, sticky="nw")
 
     rigSelectorButton = tk.Button(rigSelector, text="Select", 
@@ -264,6 +267,40 @@ def create_attrtibute_frames(root: tk.Tk):
     # Add event handler
     shutterSlider.bind("<ButtonRelease-1>", lambda e: change_shutter())
 
+def playback_change(slider: tk.Scale, playback: int):
+    global artnetConnection, playbackSliders
+    #artnetConnection.set_playback(playback, slider.get())
+
+def bump_playback(playback: int):
+    global artnetConnection
+    #artnetConnection.bump_playback(playback)
+
+def create_playback_frames(root: tk.Tk):
+    # slider 1 | slider 2 | slider 3 | slider 4 | slider 5
+    #  bump 1 |  bump 2  |  bump 3  |  bump 4  |  bump 5
+    global bumpButtons, playbackSliders, recordButton
+    # Create a frame for the sliders
+    sliderFrame = tk.Frame(root, width=325, height=200,
+                            highlightbackground="black", highlightthickness="1")
+    sliderFrame.grid(row=4, column=0, sticky="nw")
+    sliderFrame.grid_propagate(False)
+    for i in range(5):
+        # Create a slider for each playback
+        slider = tk.Scale(sliderFrame, from_=0, to=255, orient=tk.VERTICAL)
+        slider.grid(row=0, column=i, sticky="nw")
+        slider.bind("<ButtonRelease-1>", lambda e: playback_change(slider, i))
+        playbackSliders.append(slider)
+
+        # Create a bump button for each playback
+        bumpButton = tk.Button(sliderFrame, text=f"Bump {i+1}")
+        bumpButton.grid(row=1, column=i, sticky="nw")
+        bumpButtons.append(bumpButton)
+        bumpButton.bind("<ButtonRelease-1>", lambda e: bump_playback(i))
+    
+    # Record button
+    recordButton = tk.Button(sliderFrame, text="Record")
+    recordButton.grid(row=0, column=5, sticky="nw")
+
 def main(): 
     global artnetConnection
     atnetSetup = setupWindow.setupWindow()
@@ -282,7 +319,7 @@ def main():
     
     global rigsDB
     rigsDB = sqlite3.connect(os.path.join(os.getcwd(), "src", "rigs.db"))
-    rigs = getRigs()
+    rigs = get_rigs()
 
     global root, headsList, addHeadButton, deleteHeadButton
     root = tk.Tk()
@@ -292,9 +329,9 @@ def main():
     root.bind("<Escape>", lambda e: root.destroy())
 
     # Show selector button, always in the top left corner
-    showSelectorButton = tk.Button(root, text="Show Selector", 
-                                   command=lambda: showSelector())
-    showSelectorButton.grid(row=0, column=0, sticky="nw")
+    select_showButton = tk.Button(root, text="Show Selector", 
+                                   command=lambda: select_show())
+    select_showButton.grid(row=0, column=0, sticky="nw")
 
     # Create a resizable section on the left
     headsFrame = tk.Frame(root, width=200, height=500)
@@ -321,6 +358,7 @@ def main():
     headsList.grid_propagate(False)
 
     create_attrtibute_frames(root)
+    create_playback_frames(root)
 
     # Main window
     root.mainloop()
