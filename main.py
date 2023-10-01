@@ -16,9 +16,9 @@ try:
 
     from PIL import Image, ImageTk
 
-    import TKWindows.setupWindow as setupWindow
+    import TKWindows.setupWindow as setup_window
     import TKWindows.addHead as addHead
-    import classes.lighting_fixture as lighting_fixture
+    import classes.lighting_fixture as LightingFixture
 except ImportError:
     # Some packages are not installed or available
     if (input('''One or more required modules are not installed, would you like 
@@ -38,7 +38,7 @@ selected_rig = None
 root = None
 headsInRig = []
 headsList = []
-addHeadButton, deleteHeadButton = None, None
+addHeadButton, delete_headButton = None, None
 color = None
 heads = None
 amberSlider = None
@@ -87,20 +87,21 @@ def select_show():
     nameInput.grid(row=3, column=0, sticky="nw")
 
     rigSelectorButton = tk.Button(rigSelector, text="Select",
-                                  command=lambda: setRig(
+                                  command=lambda: set_rig(
                                       rigSelectorDropdown.get(),
                                       rigSelector.destroy()))
     rigSelectorButton.grid(row=4, column=0, sticky="nw")
 
-    # New rig button, this passes None to setRig, which will create a new rig
+    # New rig button, this passes None to set_rig, which will create a new rig
     newRigButton = tk.Button(rigSelector, text="New Rig",
-                             command=lambda: setRig(nameInput.get(),
+                             command=lambda: set_rig(nameInput.get(),
                                                     rigSelector.destroy(), True))
     newRigButton.grid(row=5, column=0, sticky="nw")
 
     rigSelector.mainloop()
 
 # ATTRIBUTE HANDLERS
+
 
 def change_color(root: tk.Tk):
     try:
@@ -160,7 +161,7 @@ def change_shutter():
             "Warning", "Shutter is not supported on one or more selected heads")
 
 
-def deleteHead(heads: tuple):
+def delete_head(heads: tuple):
     global selected_rig
     if (selected_rig == None):
         messagebox.showerror("Error", "No rig selected")
@@ -173,16 +174,20 @@ def deleteHead(heads: tuple):
             query = f"DELETE FROM {selected_rig} WHERE HeadID={head}"
             rigsDB.execute(query)
         rigsDB.commit()
-        showRig(headsList)
+        show_rig(headsList)
 
 
-def showRig(lbox: tk.Listbox):
+def show_rig(lbox: tk.Listbox):
     global selected_rig, heads, artnetConnection, headsInRig
     query = f"SELECT * FROM '{selected_rig}' ORDER BY HeadID ASC"
-    rows = rigsDB.execute(query)
+    try:
+        rows = rigsDB.execute(query)
+    except:
+        messagebox.showerror("Error", "Failed to find rig in database.")
+        return
     headsInRig = []
     for row in rows:
-        headsInRig.append(lighting_fixture.lighting_fixture(artnetConnection,
+        headsInRig.append(LightingFixture.LightingFixture(artnetConnection,
                                                             row[0], row[2],
                                                             row[3], row[4],
                                                             0 if (
@@ -203,8 +208,8 @@ def showRig(lbox: tk.Listbox):
         lbox.insert(tk.END, f"{row[0]}: {row[1]}")
 
 
-def setRig(rig: str = None, window: tk.Toplevel = None, newRig: str = False):
-    global selected_rig, headsList, deleteHeadButton, addHeadButton, rigsDB
+def set_rig(rig: str = None, window: tk.Toplevel = None, newRig: str = False):
+    global selected_rig, headsList, delete_headButton, addHeadButton, rigsDB
     if (newRig):
         if (rig == ""):
             messagebox.showerror("Error", "Please enter a name for the rig")
@@ -234,11 +239,11 @@ def setRig(rig: str = None, window: tk.Toplevel = None, newRig: str = False):
             messagebox.showerror("Error", "Failed to create new rig")
             return
         selected_rig = rig
-    
+
     selected_rig = rig
-    deleteHeadButton["state"] = "normal"
+    delete_headButton["state"] = "normal"
     addHeadButton["state"] = "normal"
-    showRig(headsList)
+    show_rig(headsList)
 
 
 def create_attrtibute_frames(root: tk.Tk):
@@ -364,7 +369,7 @@ def create_playback_frames(root: tk.Tk):
 
 def main():
     global artnetConnection
-    atnetSetup = setupWindow.setupWindow()
+    atnetSetup = setup_window.setup_window()
     artnetConnection = StupidArtnet(
         atnetSetup[0], atnetSetup[3], atnetSetup[2], atnetSetup[1])
     try:
@@ -382,7 +387,7 @@ def main():
     rigsDB = sqlite3.connect(os.path.join(os.getcwd(), "src", "rigs.db"))
     rigs = get_rigs()
 
-    global root, headsList, addHeadButton, deleteHeadButton
+    global root, headsList, addHeadButton, delete_headButton
     root = tk.Tk()
     root.title(f"OliQ V" + str(info[0].split("=")[1]))
     # mazimised window
@@ -406,11 +411,11 @@ def main():
     addHeadButton.grid(row=0, column=0, sticky="nw")
 
     # Delete selected head(s) button
-    deleteHeadButton = tk.Button(headsFrame, text="Delete Head(s)",
-                                 command=lambda: deleteHead(headsList.curselection()))
-    deleteHeadButton.grid(row=0, column=1, sticky="nw")
+    delete_headButton = tk.Button(headsFrame, text="Delete Head(s)",
+                                 command=lambda: delete_head(headsList.curselection()))
+    delete_headButton.grid(row=0, column=1, sticky="nw")
 
-    deleteHeadButton["state"] = "disabled"
+    delete_headButton["state"] = "disabled"
     addHeadButton["state"] = "disabled"
 
     # Create a selection list for the heads

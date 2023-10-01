@@ -1,6 +1,6 @@
 from stupidArtnet import StupidArtnet
 
-class lighting_fixture:
+class LightingFixture:
     def __init__(self, ArtnetController: StupidArtnet, headID: int, 
                  headType: str, channels:int, patch: int, intensity: int=None, 
                  red:int=None, green:int=None, blue:int=None, amber:int=None, 

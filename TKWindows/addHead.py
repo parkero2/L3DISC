@@ -31,22 +31,26 @@ def submitHead(rigsDB: mainwindow.sqlite3.Connection, selected_rig: str,
         headType = headTypeDropdown.get()
     else:
         headType = headTypeEntry.get()
-    
-    query = f'''INSERT INTO {selected_rig} (Name, HeadType, Patch, Channels, 
-    Intensity, Red, Green, Blue, Amber, White, Pan, Tilt, Shutter) VALUES (
-        {"Unamed" if (headNameEntry.get() == "") else headNameEntry.get()}, {headType}, {int(patchEntry.get())}, 
-        {int(totalChannelsEntry.get())}, 
-        {int(intensityChannelEntry.get()) if (not intensityChannelEntry.get() == "") else None}, 
-        {int(redChannelEntry.get()) if (not redChannelEntry.get() == "") else None},
-        {int(greenChannelEntry.get()) if (not greenChannelEntry.get() == "") else None},
-        {int(blueChannelEntry.get()) if (not blueChannelEntry.get() == "") else None},
-        {int(amberChannelEntry.get()) if (not amberChannelEntry.get() == "") else None},
-        {int(whiteChannelEntry.get()) if (not whiteChannelEntry.get() == "") else None},
-        {int(panChannelEntry.get()) if (not panChannelEntry.get() == "") else None},
-        {int(tiltChannelEntry.get()) if (not tiltChannelEntry.get() == "") else None},
-        {int(shutterChannelEntry.get()) if (not shutterChannelEntry.get() == "") else None})'''.strip("\n")
-    print(query.strip('''
-'''))
+    try:
+        query = f'''INSERT INTO {selected_rig} (Name, HeadType, Patch, Channels, 
+        Intensity, Red, Green, Blue, Amber, White, Pan, Tilt, Shutter) VALUES (
+            {"Unamed" if (headNameEntry.get() == "") else headNameEntry.get()
+             .replace(" ", "")}, {headType}, {int(patchEntry.get())}, 
+            {int(totalChannelsEntry.get())}, 
+            {int(intensityChannelEntry.get()) if (not intensityChannelEntry.get() == "") else None}, 
+            {int(redChannelEntry.get()) if (not redChannelEntry.get() == "") else None},
+            {int(greenChannelEntry.get()) if (not greenChannelEntry.get() == "") else None},
+            {int(blueChannelEntry.get()) if (not blueChannelEntry.get() == "") else None},
+            {int(amberChannelEntry.get()) if (not amberChannelEntry.get() == "") else None},
+            {int(whiteChannelEntry.get()) if (not whiteChannelEntry.get() == "") else None},
+            {int(panChannelEntry.get()) if (not panChannelEntry.get() == "") else None},
+            {int(tiltChannelEntry.get()) if (not tiltChannelEntry.get() == "") else None},
+            {int(shutterChannelEntry.get()) if (not shutterChannelEntry.get() == "") else None})'''.strip("\n")
+        print(query.strip('''
+    '''))
+    except:
+        messagebox.showerror("Error", "Please fill out all fields")
+        return  
     rigsDB.execute(query)
 
 def addHead(root, rigsDB, selected_rig):

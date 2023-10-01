@@ -11,11 +11,11 @@ import ifaddr
 
 targetIP_var, transRate_var, packetSize_var, universe_var = None, None, None, None
 
-def setupWindow() -> (str, int, int, int):
-    setupWindowWindow()
+def setup_window() -> (str, int, int, int):
+    setup_window_window()
     return (targetIP_var.get(), transRate_var.get(), packetSize_var.get(), universe_var.get())
 
-def getAdaptorAddresses():
+def get_adaptor_addresses():
     adaptors = ifaddr.get_adapters()
     addresses = []
     for adaptor in adaptors:
@@ -26,13 +26,13 @@ def getAdaptorAddresses():
     return addresses
 
 
-def setupWindowWindow():
+def setup_window_window():
     root = tk.Tk()
     root.title("OliQ Setup")
 
     global targetIP_var, transRate_var, packetSize_var, universe_var
 
-    targetIP_var = tk.StringVar(value=str(getAdaptorAddresses()[0]))
+    targetIP_var = tk.StringVar(value=str(get_adaptor_addresses()[0]))
     transRate_var = tk.IntVar(value=30)
     packetSize_var = tk.IntVar(value=512)
     universe_var = tk.IntVar(value=0)
@@ -40,7 +40,7 @@ def setupWindowWindow():
     # Target IP selection and formatting
     targetIP_label = tk.Label(root, text="Target IP\nThis is the IP your Artnet device is listening on")
     targetIP_label.grid(row=0, column=0, sticky="nsew")
-    targetIP_droptdown = tk.OptionMenu(root, targetIP_var, *getAdaptorAddresses())
+    targetIP_droptdown = tk.OptionMenu(root, targetIP_var, *get_adaptor_addresses())
     targetIP_droptdown.grid(row=0, column=2, sticky="nsew")
 
     # Transmission rate selection and formatting
