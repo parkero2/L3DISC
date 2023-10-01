@@ -21,10 +21,10 @@ try:
     import classes.lighting_fixture as lighting_fixture
 except ImportError:
     # Some packages are not installed or available
-    if(input('''One or more required modules are not installed, would you like 
+    if (input('''One or more required modules are not installed, would you like 
              to install them? (y/n): '''.replace('\n', '')
                                         .replace('    ', ''))
-                                        .lower() == "y"):
+       .lower() == "y"):
         os.system("pip install -r requirements.txt")
         print("Please restart OliQ.")
         exit(0)
@@ -57,14 +57,16 @@ except FileNotFoundError:
     print('''info.txt not found, please download the latest version of OliQ from 
           https://github.com/parkero2/L3DISC/releases.''')
 
+
 def get_rigs() -> list:
     global rigsDB
-     # Get all the tables in the database
+    # Get all the tables in the database
     rows = rigsDB.execute("SELECT name FROM sqlite_schema WHERE type='table';")
     rigs = []
     for row in rows:
-        rigs.append(row) # Make a list of each rig in the database
+        rigs.append(row)  # Make a list of each rig in the database
     return rigs
+
 
 def select_show():
     # window with a dropdown menu allowing the user to select a rig
@@ -79,26 +81,32 @@ def select_show():
     rigSelectorDropdown = ttk.Combobox(rigSelector, values=get_rigs())
     rigSelectorDropdown.grid(row=1, column=0, sticky="nw")
 
-    rigSelectorButton = tk.Button(rigSelector, text="Select", 
+    tk.Label(rigSelector, text="Or create a new one").grid(row=2, column=0,
+                                                           sticky="nw")
+    nameInput = tk.Entry(rigSelector)
+    nameInput.grid(row=3, column=0, sticky="nw")
+
+    rigSelectorButton = tk.Button(rigSelector, text="Select",
                                   command=lambda: setRig(
-                                      rigSelectorDropdown.get(), 
+                                      rigSelectorDropdown.get(),
                                       rigSelector.destroy()))
-    rigSelectorButton.grid(row=2, column=0, sticky="nw")
+    rigSelectorButton.grid(row=4, column=0, sticky="nw")
 
     # New rig button, this passes None to setRig, which will create a new rig
-    newRigButton = tk.Button(rigSelector, text="New Rig", 
-                             command=lambda: setRig(None, 
-                                                    rigSelector.destroy()))
-    newRigButton.grid(row=3, column=0, sticky="nw")
+    newRigButton = tk.Button(rigSelector, text="New Rig",
+                             command=lambda: setRig(nameInput.get(),
+                                                    rigSelector.destroy(), True))
+    newRigButton.grid(row=5, column=0, sticky="nw")
 
     rigSelector.mainloop()
 
 # ATTRIBUTE HANDLERS
 
+
 def change_color(root: tk.Tk):
     try:
         global color, headsInRig, amberSlider, whiteSlider, headsList
-        color = askcolor(title="Select Color")  
+        color = askcolor(title="Select Color")
         # Set the color for each head selected
         print(headsInRig)
         for head in headsList.curselection():
@@ -109,7 +117,9 @@ def change_color(root: tk.Tk):
             headsInRig[head].set_amber(amberSlider.get())
             headsInRig[head].set_white(whiteSlider.get())
     except:
-        messagebox.showwarning("Warning", "Color is not supported on one or more selected heads")
+        messagebox.showwarning(
+            "Warning", "Color is not supported on one or more selected heads")
+
 
 def change_intensity():
     try:
@@ -117,7 +127,9 @@ def change_intensity():
         for head in headsList.curselection():
             headsInRig[head].set_intensity(intensitySlider.get())
     except:
-        messagebox.showwarning("Warning", "Intensity is not supported on one or more selected heads")
+        messagebox.showwarning(
+            "Warning", "Intensity is not supported on one or more selected heads")
+
 
 def change_pan():
     try:
@@ -125,7 +137,9 @@ def change_pan():
         for head in headsList.curselection():
             headsInRig[head].set_pan(panSlider.get())
     except:
-        messagebox.showwarning("Warning", "Pan is not supported on one or more selected heads")
+        messagebox.showwarning(
+            "Warning", "Pan is not supported on one or more selected heads")
+
 
 def change_tilt():
     try:
@@ -133,7 +147,9 @@ def change_tilt():
         for head in headsList.curselection():
             headsInRig[head].set_tilt(tiltSlider.get())
     except:
-        messagebox.showwarning("Warning", "Tilt is not supported on one or more selected heads")
+        messagebox.showwarning(
+            "Warning", "Tilt is not supported on one or more selected heads")
+
 
 def change_shutter():
     try:
@@ -141,7 +157,9 @@ def change_shutter():
         for head in headsList.curselection():
             headsInRig[head].set_shutter(shutterSlider.get())
     except:
-        messagebox.showwarning("Warning", "Shutter is not supported on one or more selected heads")
+        messagebox.showwarning(
+            "Warning", "Shutter is not supported on one or more selected heads")
+
 
 def deleteHead(heads: tuple):
     global selected_rig
@@ -158,31 +176,71 @@ def deleteHead(heads: tuple):
         rigsDB.commit()
         showRig(headsList)
 
+
 def showRig(lbox: tk.Listbox):
     global selected_rig, heads, artnetConnection, headsInRig
-    query = f"SELECT * FROM {selected_rig} ORDER BY HeadID ASC"
+    query = f"SELECT * FROM '{selected_rig}' ORDER BY HeadID ASC"
     rows = rigsDB.execute(query)
     headsInRig = []
     for row in rows:
-        headsInRig.append(lighting_fixture.lighting_fixture(artnetConnection, 
-                                                            row[0], row[2], 
+        headsInRig.append(lighting_fixture.lighting_fixture(artnetConnection,
+                                                            row[0], row[2],
                                                             row[3], row[4],
-                                                            0 if (row[5] == None) else row[5],
-                                                            0 if (row[6] == None) else row[6],
-                                                            0 if (row[7] == None) else row[7],
-                                                            0 if (row[8] == None) else row[8],
-                                                            0 if (row[9] == None) else row[9],
-                                                            0 if (row[10] == None) else row[10],
-                                                            0 if (row[11] == None) else row[11],
+                                                            0 if (
+                                                                row[5] == None) else row[5],
+                                                            0 if (
+                                                                row[6] == None) else row[6],
+                                                            0 if (
+                                                                row[7] == None) else row[7],
+                                                            0 if (
+                                                                row[8] == None) else row[8],
+                                                            0 if (
+                                                                row[9] == None) else row[9],
+                                                            0 if (
+                                                                row[10] == None) else row[10],
+                                                            0 if (
+                                                                row[11] == None) else row[11],
                                                             0 if (row[12] == None) else row[12]))
         lbox.insert(tk.END, f"{row[0]}: {row[1]}")
 
-def setRig(rig: str = None, window: tk.Toplevel = None):
-    global selected_rig, headsList, deleteHeadButton, addHeadButton
+
+def setRig(rig: str = None, window: tk.Toplevel = None, newRig: str = False):
+    global selected_rig, headsList, deleteHeadButton, addHeadButton, rigsDB
+    if (newRig):
+        if (rig == ""):
+            messagebox.showerror("Error", "Please enter a name for the rig")
+            return
+        if (rig in get_rigs()):
+            messagebox.showerror("Error", "Rig already exists")
+            return
+        query = f"""CREATE TABLE '{rig}' (
+                        'HeadID'	INTEGER NOT NULL,
+                        'HeadType'	TEXT NOT NULL,
+                        'Channels'	INTEGER NOT NULL,
+                        'Patch'	INTEGER NOT NULL,
+                        'Intensity'	INTEGER,
+                        'Red'	INTEGER,
+                        'Green'	INTEGER,
+                        'Blue'	INTEGER,
+                        'Amber'	INTEGER,
+                        'White'	INTEGER,
+                        'Pan'	INTEGER,
+                        'Tilt'	INTEGER,
+                        'Shutter'	INTEGER
+                    );"""
+        try:
+            rigsDB.execute(query)
+            rigsDB.commit()
+        except:
+            messagebox.showerror("Error", "Failed to create new rig")
+            return
+        selected_rig = rig
+    
     selected_rig = rig
     deleteHeadButton["state"] = "normal"
     addHeadButton["state"] = "normal"
     showRig(headsList)
+
 
 def create_attrtibute_frames(root: tk.Tk):
     # a 4x4 grid for attributes. Each frame has a black outline
@@ -191,8 +249,8 @@ def create_attrtibute_frames(root: tk.Tk):
 
     global amberSlider, whiteSlider, intensitySlider, panSlider, tiltSlider, shutterSlider
 
-    #Intensity section
-    intensityFrame = tk.Frame(root, width=200, height=200, 
+    # Intensity section
+    intensityFrame = tk.Frame(root, width=200, height=200,
                               highlightbackground="black", highlightthickness=1)
     intensityFrame.grid(row=1, column=2, sticky="nw")
     intensityFrame.grid_propagate(False)
@@ -202,19 +260,19 @@ def create_attrtibute_frames(root: tk.Tk):
     intensityLabel.grid(row=0, column=0, sticky="nw")
 
     # Intensity slider
-    intensitySlider = tk.Scale(intensityFrame, from_=0, to=255, orient=tk.HORIZONTAL)
+    intensitySlider = tk.Scale(
+        intensityFrame, from_=0, to=255, orient=tk.HORIZONTAL)
     intensitySlider.grid(row=1, column=0, sticky="nw")
     intensitySlider.bind("<ButtonRelease-1>", lambda e: change_intensity())
 
-
     # Color section
-    colorFrame = tk.Frame(root, width=200, height=200, 
-                              highlightbackground="black", highlightthickness=1)
+    colorFrame = tk.Frame(root, width=200, height=200,
+                          highlightbackground="black", highlightthickness=1)
     colorFrame.grid(row=1, column=3, sticky="nw")
     colorFrame.grid_propagate(False)
 
     # Color picker
-    colorPicker = tk.Button(colorFrame, text="Color Picker", command=lambda: 
+    colorPicker = tk.Button(colorFrame, text="Color Picker", command=lambda:
                             change_color(root))
     colorPicker.grid(row=0, column=0, sticky="nw")
 
@@ -228,13 +286,13 @@ def create_attrtibute_frames(root: tk.Tk):
     whiteSlider = tk.Scale(colorFrame, from_=0, to=255, orient=tk.HORIZONTAL)
     whiteSlider.grid(row=4, column=0, sticky="nw")
 
-    #Slider event handlers
+    # Slider event handlers
     amberSlider.bind("<ButtonRelease-1>", lambda e: change_color(root))
     whiteSlider.bind("<ButtonRelease-1>", lambda e: change_color(root))
 
     # Position section
-    positionFrame = tk.Frame(root, width=200, height=200, 
-                              highlightbackground="black", highlightthickness=1)
+    positionFrame = tk.Frame(root, width=200, height=200,
+                             highlightbackground="black", highlightthickness=1)
     positionFrame.grid(row=1, column=4, sticky="nw")
     positionFrame.grid_propagate(False)
 
@@ -253,7 +311,7 @@ def create_attrtibute_frames(root: tk.Tk):
     tiltSlider.bind("<ButtonRelease-1>", lambda e: change_tilt())
 
     # Beam section
-    beamFrame = tk.Frame(root, width=200, height=200, 
+    beamFrame = tk.Frame(root, width=200, height=200,
                          highlightbackground="black", highlightthickness="1")
     beamFrame.grid(row=1, column=5, sticky="nw")
     beamFrame.grid_propagate(False)
@@ -267,13 +325,16 @@ def create_attrtibute_frames(root: tk.Tk):
     # Add event handler
     shutterSlider.bind("<ButtonRelease-1>", lambda e: change_shutter())
 
+
 def playback_change(slider: tk.Scale, playback: int):
     global artnetConnection, playbackSliders
-    #artnetConnection.set_playback(playback, slider.get())
+    # artnetConnection.set_playback(playback, slider.get())
+
 
 def bump_playback(playback: int):
     global artnetConnection
-    #artnetConnection.bump_playback(playback)
+    # artnetConnection.bump_playback(playback)
+
 
 def create_playback_frames(root: tk.Tk):
     # slider 1 | slider 2 | slider 3 | slider 4 | slider 5
@@ -281,7 +342,7 @@ def create_playback_frames(root: tk.Tk):
     global bumpButtons, playbackSliders, recordButton
     # Create a frame for the sliders
     sliderFrame = tk.Frame(root, width=325, height=200,
-                            highlightbackground="black", highlightthickness="1")
+                           highlightbackground="black", highlightthickness="1")
     sliderFrame.grid(row=4, column=0, sticky="nw")
     sliderFrame.grid_propagate(False)
     for i in range(5):
@@ -296,27 +357,28 @@ def create_playback_frames(root: tk.Tk):
         bumpButton.grid(row=1, column=i, sticky="nw")
         bumpButtons.append(bumpButton)
         bumpButton.bind("<ButtonRelease-1>", lambda e: bump_playback(i))
-    
+
     # Record button
     recordButton = tk.Button(sliderFrame, text="Record")
     recordButton.grid(row=0, column=5, sticky="nw")
 
-def main(): 
+
+def main():
     global artnetConnection
     atnetSetup = setupWindow.setupWindow()
-    artnetConnection = StupidArtnet(atnetSetup[0], atnetSetup[3], atnetSetup[2]
-                                    , atnetSetup[1])
+    artnetConnection = StupidArtnet(
+        atnetSetup[0], atnetSetup[3], atnetSetup[2], atnetSetup[1])
     try:
         artnetConnection.start()
     except:
-        #error message if not establishable
-        
-        pass 
+        # error message if not establishable
 
-    #Initialal setup
+        pass
+
+    # Initialal setup
     if (not os.path.exists(os.path.join(os.getcwd(), "heads"))):
         os.mkdir(os.path.join(os.getcwd(), "heads"))
-    
+
     global rigsDB
     rigsDB = sqlite3.connect(os.path.join(os.getcwd(), "src", "rigs.db"))
     rigs = get_rigs()
@@ -329,8 +391,8 @@ def main():
     root.bind("<Escape>", lambda e: root.destroy())
 
     # Show selector button, always in the top left corner
-    select_showButton = tk.Button(root, text="Show Selector", 
-                                   command=lambda: select_show())
+    select_showButton = tk.Button(root, text="Show Selector",
+                                  command=lambda: select_show())
     select_showButton.grid(row=0, column=0, sticky="nw")
 
     # Create a resizable section on the left
@@ -338,18 +400,18 @@ def main():
     headsFrame.grid(row=1, column=0, sticky="nw")
     headsFrame.grid_propagate(False)
 
-    #Add head button
+    # Add head button
     addHeadButton = tk.Button(headsFrame, text="Add Head",
-                                command=lambda: addHead.addHead(root, rigsDB, 
-                                                                selected_rig))
+                              command=lambda: addHead.addHead(root, rigsDB,
+                                                              selected_rig))
     addHeadButton.grid(row=0, column=0, sticky="nw")
 
     # Delete selected head(s) button
     deleteHeadButton = tk.Button(headsFrame, text="Delete Head(s)",
-                                command=lambda: deleteHead(headsList.curselection()))
+                                 command=lambda: deleteHead(headsList.curselection()))
     deleteHeadButton.grid(row=0, column=1, sticky="nw")
 
-    deleteHeadButton["state"] = "disabled" 
+    deleteHeadButton["state"] = "disabled"
     addHeadButton["state"] = "disabled"
 
     # Create a selection list for the heads
@@ -362,6 +424,7 @@ def main():
 
     # Main window
     root.mainloop()
+
 
 if __name__ == '__main__':
     main()
