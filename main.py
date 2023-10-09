@@ -21,16 +21,8 @@ try:
     import classes.lighting_fixture as LightingFixture
 except ImportError:
     # Some packages are not installed or available
-    if (input('''One or more required modules are not installed, would you like 
-             to install them? (y/n): '''.replace('\n', '')
-                                        .replace('    ', ''))
-       .lower() == "y"):
-        os.system("pip install -r requirements.txt")
-        print("Please restart OliQ.")
-        exit(0)
-    else:
-        print("Please install the required modules before running OliQ.")
-        exit(1)
+    print("Please install the required modules before running OliQ.")
+    exit(1)
 
 artnetConnection = None
 rigsDB = None
